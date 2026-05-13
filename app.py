@@ -3,18 +3,20 @@ import subprocess
 import sys
 import os
 import tempfile
+import base64
 
 st.set_page_config(page_title="MESOB - Asistente del Máster", page_icon="🎓", layout="centered")
 
 st.title("🎓 MESOB — Asistente del Máster")
 st.caption("Haz preguntas sobre la documentación del máster")
 
-# En la nube: lee la autenticación desde variable de entorno
+# En la nube: decodifica el auth desde base64
 auth_path = None
-auth_json = os.environ.get("NOTEBOOKLM_AUTH_JSON")
-if auth_json:
-    tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8")
-    tmp.write(auth_json)
+auth_b64 = os.environ.get("NOTEBOOKLM_AUTH_B64")
+if auth_b64:
+    auth_bytes = base64.b64decode(auth_b64)
+    tmp = tempfile.NamedTemporaryFile(mode="wb", suffix=".json", delete=False)
+    tmp.write(auth_bytes)
     tmp.close()
     auth_path = tmp.name
 
@@ -40,7 +42,6 @@ if prompt := st.chat_input("Escribe tu pregunta..."):
             result = subprocess.run(
                 cmd,
                 capture_output=True,
-                text=True,
                 encoding="utf-8",
                 errors="replace"
             )
